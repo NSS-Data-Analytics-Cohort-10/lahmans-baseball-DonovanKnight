@@ -71,11 +71,78 @@ FROM teams
  ---ANSWER: Eddie Gaedel AKA. Edward Carl, listed at 43 inches tall or 3'9". He played one game for the St. Louis Browns.
 
 3. Find all players in the database who played at Vanderbilt University. Create a list showing each player’s first and last names as well as the total salary they earned in the major leagues. Sort this list in descending order by the total salary earned. Which Vanderbilt player earned the most money in the majors?
-	SELECT
+	SELECT schoolid,
+	namefirst,
+	namelast,
+	salaries.yearid,
+	SUM(salaries.salary) as total_sal
+	FROM people
+	LEFT JOIN collegeplaying
+	USING (playerid)
+	LEFT JOIN salaries
+	USING (playerid)
+	LEFT JOIN schools
+	USING (schoolid)
+	WHERE schoolid = 'vandy' AND salary IS NOT NULL
+	GROUP BY namefirst, namelast, schoolid, salaries.yearid
+	ORDER BY total_sal DESC;
+	
+	--ANSWER David Price, not sure how to get rid of duplicates
 
 4. Using the fielding table, group players into three groups based on their position: label players with position OF as "Outfield", those with position "SS", "1B", "2B", and "3B" as "Infield", and those with position "P" or "C" as "Battery". Determine the number of putouts made by each of these three groups in 2016.
+
+SELECT SUM(po) as total_putout, 
+yearid,
+CASE
+	WHEN pos IN ('OF') THEN 'Outfield'
+	WHEN pos IN ('P','C') THEN 'Battery'
+	ELSE 'Infield'
+	END AS player_group
+	FROM fielding
+	WHERE yearid = 2016
+	GROUP BY pos, yearid
+	ORDER BY total_putout;
+	
+	--- this out put gave me multiple rows for infield, 4 specifically, due to me not being specific enough with the else statement in my query
+	
+	
+SELECT
+SUM(po) as total_putout, 
+fielding.yearid,
+CASE
+WHEN pos IN ('OF') THEN 'Outfield'
+WHEN pos IN ('SS','1B','2B','3B') THEN 'Infield'
+WHEN pos IN ('P', 'C') THEN 'Battery'
+END AS position_played
+FROM fielding
+WHERE fielding.yearid = 2016
+GROUP BY position_played, fielding.yearid
+ORDER BY total_putout;
+
+
+-- ANSWER : Battery: 41424 , Infield: 58934 , Outfield: 29560
+
+
+	
+	
+
+
    
 5. Find the average number of strikeouts per game by decade since 1920. Round the numbers you report to 2 decimal places. Do the same for home runs per game. Do you see any trends?
+
+
+SELECT a.yearid, a.g_all, b.so
+FROM appearances as a
+LEFT JOIN batting as b
+WITH appearances AS
+(
+	SELECT 1920 as year
+	UNION ALL
+	
+
+SELECT a.g_all,
+
+
    
 
 6. Find the player who had the most success stealing bases in 2016, where __success__ is measured as the percentage of stolen base attempts which are successful. (A stolen base attempt results either in a stolen base or being caught stealing.) Consider only players who attempted _at least_ 20 stolen bases.
