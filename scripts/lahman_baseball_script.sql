@@ -122,41 +122,173 @@ ORDER BY total_putout;
 
 -- ANSWER : Battery: 41424 , Infield: 58934 , Outfield: 29560
 
-
-	
-	
-
-
    
 5. Find the average number of strikeouts per game by decade since 1920. Round the numbers you report to 2 decimal places. Do the same for home runs per game. Do you see any trends?
 
 
-SELECT a.yearid, a.g_all, b.so
-FROM appearances as a
-LEFT JOIN batting as b
-WITH appearances AS
-(
-	SELECT 1920 as year
-	UNION ALL
-	
+SELECT *
+FROM teams
 
-SELECT a.g_all,
+SELECT yearid
+FROM teams
+
+
+---Learned about the FLOOR function through a classmate. 
+
+
+SELECT 
+FLOOR(yearid) AS decade
+FROM teams
+WHERE yearid >=1920
+GROUP BY decade
+ORDER BY decade
+
+
+SELECT
+FLOOR((yearid/10)*10) AS decade
+FROM teams
+WHERE yearid >= 1920
+GROUP BY decade 
+ORDER BY decade;
+
+
+--- Added strikeout per game and home runs per game
+
+SELECT
+	FLOOR(yearid) AS decade,
+	ROUND(AVG(so/g), 2) AS avg_strikeouts,
+	ROUND(AVG(hr/g), 2) AS avg_homeruns
+FROM teams
+WHERE yearid >= 1920
+GROUP BY decade 
+ORDER BY decade;
+
+--- ANSWER: AS the years go on there are more strikeouts and homeruns per game
+
 
 
    
 
 6. Find the player who had the most success stealing bases in 2016, where __success__ is measured as the percentage of stolen base attempts which are successful. (A stolen base attempt results either in a stolen base or being caught stealing.) Consider only players who attempted _at least_ 20 stolen bases.
+
+
+
+
+	
 	
 
 7.  From 1970 – 2016, what is the largest number of wins for a team that did not win the world series? What is the smallest number of wins for a team that did win the world series? Doing this will probably result in an unusually small number of wins for a world series champion – determine why this is the case. Then redo your query, excluding the problem year. How often from 1970 – 2016 was it the case that a team with the most wins also won the world series? What percentage of the time?
+	
+	with cte AS(SELECT yearid, (MAX(w))AS maxw
+			   FROM teams
+			   WHERE yearid BETWEEN  1970 and 2016 AND yearid NOT IN (1981)
+			   GROUP BY yearid
+			   ORDER BY yearid DESC),
+			   
+	cte2 AS (SELECT teamid, 
+			yearid,
+			w,
+			wswin
+			FROM teams
+			WHERE yearid BETWEEN 1970 AND 2016 AND yearid NOT IN (1981)
+			ORDER BY w DESC)
+SELECT
+SUM(CASE WHEN wswin= 'Y' THEN 1 ELSE 0 END) AS total_wins,
+COUNT(DISTINCT cte.yearid),
+ROUND(SUM(CASE WHEN wswin='Y' THEN 1 ELSE 0 END)/COUNT(DISTINCT cte.yearid)::numeric, 2)*100 AS win_percentage
+FROM cte2
+LEFT JOIN cte
+ON cte.yearid=cte2.yearid AND cte2.w=cte.maxw
+WHERE cte.maxw IS NOT NULL;
+
+---ANSWER: 26% of the time... Got this answer from a classmate from breakout rooms, it was not going to come to my brain. Tried to play around with it and study it to help my thought process for other problems of this caliber
 
 
 8. Using the attendance figures from the homegames table, find the teams and parks which had the top 5 average attendance per game in 2016 (where average attendance is defined as total attendance divided by number of games). Only consider parks where there were at least 10 games played. Report the park name, team name, and average attendance. Repeat for the lowest 5 average attendance.
 
+SELECT *
+FROM homegames
+
+SELECT * 
+FROM parks
+
+SELECT *
+FROM teams
+
+SELECT team, park,(SELECT AVG(attendance/games) AS average_attendance FROM homegames)
+FROM homegames
+
+SELECT team,park_name,year,
+AVG(attendance/games) AS average_attendance
+FROM homegames
+INNER JOIN parks
+USING (park)
+WHERE year = '2016' AND games>=10
+GROUP BY team, parks.park_name, year
+ORDER BY average_attendance DESC
+LIMIT 5;
+
+--- got the team abbreviation but now trying to add the team name.
+
+SELECT team, teams.name, park_name,year,
+AVG(homegames.attendance/homegames.games) AS average_attendance
+FROM homegames
+INNER JOIN parks
+USING (park)
+INNER JOIN teams
+ON  teams.teamid = homegames.team
+WHERE year = '2016' AND games>=10
+GROUP BY team,teams.name, parks.park_name, year
+ORDER BY average_attendance DESC
+LIMIT 5;
+
+---added names, these are the top averages for attedance.
+
+SELECT team, teams.name, park_name,year,
+AVG(homegames.attendance/homegames.games) AS average_attendance
+FROM homegames
+INNER JOIN parks
+USING (park)
+INNER JOIN teams
+ON  teams.teamid = homegames.team
+WHERE year = '2016' AND games>=10
+GROUP BY team,teams.name, parks.park_name, year
+ORDER BY average_attendance 
+LIMIT 5;
+
+-- ANSWER: these are the bottom 5 average percentages
+
 
 9. Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.
 
+SELECT *
+FROM awardsmanagers
+
+SELECT *
+FROM teams
+
+SELECT *
+FROM people
+
+SELECT *
+FROM managers
+
+SELECT playerid, awardid, SELECT lgid
+FROM awardsmanagers
+WHERE awardid LIKE 'TSN%' 
+
+
+SELECT playerid, namegiven, awardid,lgid
+FROM awardsmanagers
+INNER JOIN people
+USING (playerid)
+---this inner join is helping me place names with the coaches and attempted in adding the criteria for the awards received by each manager
+WHERE awardid LIKE 'TSN%' and lgid NOT LIKE '%ML'
+
+
 10. Find all players who hit their career highest number of home runs in 2016. Consider only players who have played in the league for at least 10 years, and who hit at least one home run in 2016. Report the players' first and last names and the number of home runs they hit in 2016.
+
+
 
 
 **Open-ended questions**
