@@ -171,7 +171,37 @@ ORDER BY decade;
 
 6. Find the player who had the most success stealing bases in 2016, where __success__ is measured as the percentage of stolen base attempts which are successful. (A stolen base attempt results either in a stolen base or being caught stealing.) Consider only players who attempted _at least_ 20 stolen bases.
 
+--- CTE for this question because there will be multiple aggregate functions to solve this question 
 
+SELECT *
+FROM batting
+
+WITH stolen_bases AS ( 
+	SELECT
+	playerID,
+	SUM(sb::numeric) AS stolen_bases,
+	SUM(cs::numeric) AS caught_stealing,
+	((SUM(sb)/((SUM(sb::numeric))+(SUM(cs::numeric))))*100) AS percent_stolen
+FROM batting
+WHERE sb IS NOT NULL
+AND cs IS NOT NULL
+AND yearid = 2016
+GROUP BY playerID
+HAVING (SUM(sb)+SUM(cs)) >= 20
+	---this gathers all of the total bases that each player attempted to steal, regardless of outcome
+)
+SELECT 
+	namefirst,
+	namelast,
+	stolen_bases,
+	caught_stealing,
+	percent_stolen
+FROM people 
+INNER JOIN stolen_bases
+USING(playerid)
+ORDER BY percent_stolen DESC;
+
+--- ANSWER: Chris Owings
 
 
 	
@@ -201,7 +231,7 @@ LEFT JOIN cte
 ON cte.yearid=cte2.yearid AND cte2.w=cte.maxw
 WHERE cte.maxw IS NOT NULL;
 
----ANSWER: 26% of the time... Got this answer from a classmate from breakout rooms, it was not going to come to my brain. Tried to play around with it and study it to help my thought process for other problems of this caliber
+---ANSWER: 26% of the time for the last part of the question... Got this answer from a classmate from breakout rooms, it was not coming to my brain. Tried to play around with it and study it to help my thought process
 
 
 8. Using the attendance figures from the homegames table, find the teams and parks which had the top 5 average attendance per game in 2016 (where average attendance is defined as total attendance divided by number of games). Only consider parks where there were at least 10 games played. Report the park name, team name, and average attendance. Repeat for the lowest 5 average attendance.
@@ -278,6 +308,7 @@ FROM awardsmanagers
 WHERE awardid LIKE 'TSN%' 
 
 
+
 SELECT playerid, namegiven, awardid,lgid
 FROM awardsmanagers
 INNER JOIN people
@@ -286,7 +317,15 @@ USING (playerid)
 WHERE awardid LIKE 'TSN%' and lgid NOT LIKE '%ML'
 
 
+
+
+
+
+
 10. Find all players who hit their career highest number of home runs in 2016. Consider only players who have played in the league for at least 10 years, and who hit at least one home run in 2016. Report the players' first and last names and the number of home runs they hit in 2016.
+
+
+
 
 
 
