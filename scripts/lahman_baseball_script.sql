@@ -182,6 +182,7 @@ WITH stolen_bases AS (
 	SUM(sb::numeric) AS stolen_bases,
 	SUM(cs::numeric) AS caught_stealing,
 	((SUM(sb)/((SUM(sb::numeric))+(SUM(cs::numeric))))*100) AS percent_stolen
+	--- this gives us the percentage of bases stole nby each player
 FROM batting
 WHERE sb IS NOT NULL
 AND cs IS NOT NULL
@@ -291,6 +292,8 @@ LIMIT 5;
 
 9. Which managers have won the TSN Manager of the Year award in both the National League (NL) and the American League (AL)? Give their full name and the teams that they were managing when they won the award.
 
+--need CTE because 
+
 SELECT *
 FROM awardsmanagers
 
@@ -314,7 +317,7 @@ FROM awardsmanagers
 INNER JOIN people
 USING (playerid)
 ---this inner join is helping me place names with the coaches and attempted in adding the criteria for the awards received by each manager
-WHERE awardid LIKE 'TSN%' and lgid NOT LIKE '%ML'
+WHERE awardid LIKE 'TSN%' and lgid NOT LIKE '%ML' 
 
 
 
@@ -322,7 +325,56 @@ WHERE awardid LIKE 'TSN%' and lgid NOT LIKE '%ML'
 
 
 
-10. Find all players who hit their career highest number of home runs in 2016. Consider only players who have played in the league for at least 10 years, and who hit at least one home run in 2016. Report the players' first and last names and the number of home runs they hit in 2016.
+
+
+10. Find all players who hit their career highest number of home runs in 2016. Consider only players who have played in the league for at least 10 years, and who hit at least one home run in 2016. Report the players first and last names and the number of home runs they hit in 2016.
+
+
+SELECT hr,p.namefirst, p.namelast, a.yearid
+FROM batting
+INNER JOIN appearances AS a
+USING (playerid)
+INNER JOIN people AS p
+USING (playerid)
+WHERE a.yearid = '2016'
+ORDER BY hr DESC;
+
+--- this query above gives me the players with the most homeruns in 2016... how to get CAREER HOMERUNS in 2016
+
+SELECT yearid, namefirst, namelast
+FROM appearances AS a
+INNER JOIN people
+USING (playerid)
+WHERE a.yearid >= '2006'
+
+--- this query gives me all players that have been in the league for at least 10 years.
+
+
+
+
+
+SELECT MAX(hr) 
+FROM batting
+
+SELECT MAX(b.hr), b.playerid, p.namefirst, p.namelast
+FROM batting AS b
+INNER JOIN people AS p
+USING (playerid)
+WHERE yearid = '2016' AND hr >=1
+GROUP BY b.playerid, p.namefirst,p.namelast
+ORDER BY MAX(b.hr) DESC;
+
+--- this query above gives me the players with the most homeruns in 2016... how to get CAREER HOMERUNS in 2016 (used different tables.. might help with CTE later ?)
+
+
+
+
+
+
+SELECT yearid
+FROM appearances
+
+
 
 
 
