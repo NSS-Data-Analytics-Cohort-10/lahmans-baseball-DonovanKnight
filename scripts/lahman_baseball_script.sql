@@ -155,7 +155,7 @@ ORDER BY decade;
 --- Added strikeout per game and home runs per game
 
 SELECT
-	FLOOR(yearid) AS decade,
+	FLOOR((yearid/10)*10) AS decade,
 	ROUND(AVG(so/g), 2) AS avg_strikeouts,
 	ROUND(AVG(hr/g), 2) AS avg_homeruns
 FROM teams
