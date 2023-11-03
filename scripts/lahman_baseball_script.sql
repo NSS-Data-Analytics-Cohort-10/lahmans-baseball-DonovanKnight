@@ -368,12 +368,16 @@ ORDER BY MAX(b.hr) DESC;
 
 
 
-
-
-
-SELECT yearid
-FROM appearances
-
+SELECT p.namefirst, p.namelast, b.HR
+FROM batting AS b
+INNER JOIN people as p
+USING (playerid)
+WHERE b.yearid = 2016
+	AND b.HR = (SELECT MAX(HR) FROM batting WHERE playerid =b.playerid)
+	AND b.HR > 0
+	AND (SELECT COUNT(yearid) FROM batting WHERE playerid = b.playerid) >= 10
+ORDER BY hr DESC;
+	
 
 
 
